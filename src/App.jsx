@@ -1,9 +1,11 @@
 import axios from "axios";
-import { useQuery, useMutation } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 import "./App.css";
 
 function App() {
+  const queryClient = useQueryClient();
+
   // First useQuery param is query's name and second is an function  
   // isLoading from useQuery inform if query is being performed or is completed
   // This error constant will be populated after all retry requests return error
@@ -38,7 +40,10 @@ function App() {
     },
     onSuccess: (data) => {
       //when mutation success, remade query to update element on screen
+      //first option, using refetch:
       refetch();
+      //second option, doing manually width useQueryClient, better than redoing query
+      queryClient.setQueryData("todos", (currentData) => currentData.map(todo => todo.id === data.id ?  data :  todo));
     },
     onError: (error) => {
       console.error(error);
