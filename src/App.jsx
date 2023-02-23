@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useQuery } from 'react-query';
+import { useQuery, useMutation } from 'react-query';
 
 import "./App.css";
 
@@ -15,15 +15,36 @@ function App() {
   },
   //If request provides an error, react-query can resend as many requests as you want
     {
-      retry: 5,
+      //retry: 5,
       //refetchOnWindowFocus repeat request after user switch back browser tab 
-      refetchOnWindowFocus: true,
+      //refetchOnWindowFocus: true,
       //refetchInterval gives a possibility to resend request from time to time, time in ms
-      refetchInterval: 5000,
+      //refetchInterval: 5000,
       //initialData starts with filled data so they are not empty
-      initialData: [{id: "1", title: 'teste'}]
+      //initialData: [{id: "1", title: 'teste'}]
     }
   );
+
+  /*useMutation will receive an property mutationFn with an 
+  function that will be executed when mutation is called */
+  const mutation = useMutation({
+    //first param is todo id and second is paramether to be changed
+    mutationFn: ({todoId, completed}) =>{
+      return axios
+        .patch(`http://localhost:8080/todos/${todoId}`, {
+          completed,
+        })
+        .then((response) => response.data);
+    },
+    onSuccess: (data) => {
+      console.log(data);
+    },
+    onError: (error) => {
+      console.error(error);
+    }
+  });
+
+  //With mutation.isLoading we can deal with mutation errors
     
   // React query isLoading gives an complete state monitoring
   if (isLoading) {
@@ -40,6 +61,7 @@ function App() {
         <h2>Todos & React Query</h2>
         {data.map((todo) => (
           <div
+            onClick={() => mutation.mutate({ todoId: todo.id, completed: !todo.completed })}
             className={`todo ${todo.completed && "todo-completed"}`}
             key={todo.id}
           >
