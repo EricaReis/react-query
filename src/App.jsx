@@ -1,50 +1,30 @@
 import axios from "axios";
-import { useQuery, useMutation, useQueryClient } from "react-query";
+import { useEffect, useState } from "react";
 
 import "./App.css";
 
 function App() {
-  const queryClient = useQueryClient();
+  const [todos, setTodos] = useState([]);
 
-  const { data, isLoading, error } = useQuery("todos", () =>
-    axios.get("http://localhost:8080/todos").then((response) => response.data)
-  );
+  const handleClick = async (todoId, completed) => {
+    await axios.patch(`http://localhost:8080/todos/${todoId}`, {completed});
 
-  const mutation = useMutation({
-    mutationFn: ({ todoId, completed }) => {
-      return axios
-        .patch(`http://localhost:8080/todos/${todoId}`, {
-          completed,
-        })
-        .then((response) => response.data);
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData("todos", (currentData) =>
-        currentData.map((todo) => (todo.id === data.id ? data : todo))
-      );
-    },
-    onError: (error) => {
-      console.error(error);
-    },
-  });
+    const response = await axios.get("http://localhost:8080/todos");
 
-  if (isLoading) {
-    return <div className="loading">Carregando...</div>;
-  }
+    setTodos(response.data);
+  };
 
-  if (error) {
-    return <div className="loading">Algo deu errado!</div>;
-  }
+  useEffect(() => {
+    axios.get("http://localhost:8080/todos").then((res) => setTodos(res.data));
+  }, []);
 
   return (
     <div className="app-container">
       <div className="todos">
         <h2>Todos & React Query</h2>
-        {data.map((todo) => (
+        {todos.map((todo) => (
           <div
-            onClick={() =>
-              mutation.mutate({ todoId: todo.id, completed: !todo.completed })
-            }
+          onClick={()=> handleClick(todo.id, !todo.completed)}
             className={`todo ${todo.completed && "todo-completed"}`}
             key={todo.id}
           >
