@@ -7,7 +7,7 @@ function App() {
   // First useQuery param is query's name and second is an function  
   // isLoading from useQuery inform if query is being performed or is completed
   // This error constant will be populated after all retry requests return error
-  const { data, isLoading, error } = useQuery('todos', () => {
+  const { data, isLoading, error, refetch } = useQuery('todos', () => {
     // Getting api response then getting data from api response
     return axios
       .get("http://localhost:8080/todos")
@@ -37,7 +37,8 @@ function App() {
         .then((response) => response.data);
     },
     onSuccess: (data) => {
-      console.log(data);
+      //when mutation success, remade query to update element on screen
+      refetch();
     },
     onError: (error) => {
       console.error(error);
